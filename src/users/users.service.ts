@@ -2,32 +2,25 @@ import {
     Injectable,
 } from "@nestjs/common";
 import {
-    PrismaClient,
-} from "@prisma/client";
-import {
     UserSigninRequestDto,
 } from "./dtos/user.signin.request.dto";
-
-const prisma = new PrismaClient();
+import {
+    UsersRepository, 
+} from "./users.repository";
 
 @Injectable()
 export class UsersService {
+    constructor(private readonly userRepository: UsersRepository) {
+    }
+
     // 로그인
     async signinUser(signinDto: UserSigninRequestDto): Promise<string> {
-        try {
-            const user = await prisma.user.findUnique({
-                where: {
-                    student_id: signinDto.studentId,
-                },
-            });
-
-            if (!user || user.password !== signinDto.password) {
-                return "로그인 실패";
-            }
-
-            return "로그인 성공";
-        } catch (error) {
-            throw error;
-        }
+        return this.userRepository.signinUser(signinDto);
     }
+
+    // 비밀번호 수정
+    async changePassword(userId: number, currentPassword: string, newPassword: string): Promise<string> {
+        return this.userRepository.changePassword(userId, currentPassword, newPassword);
+    }
+
 }

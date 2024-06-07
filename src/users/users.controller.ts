@@ -1,6 +1,8 @@
 import {
     Body,
     Controller,
+    Param,
+    Patch,
     Post,
 } from "@nestjs/common";
 import {
@@ -28,5 +30,15 @@ export class UsersController {
     }
 
     // 비밀번호 수정
+    @Patch("/:userId")
+    async resetPassword(
+        @Param("userId") userId: number,
+        @Body() password: {
+            currentPassword: string,
+            newPassword: string
+        }
+    ):Promise<string> {
+        return await this.userService.changePassword(userId, password.currentPassword, password.newPassword);
 
+    }
 }
