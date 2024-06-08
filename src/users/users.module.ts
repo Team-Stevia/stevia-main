@@ -1,4 +1,5 @@
 import {
+    forwardRef,
     Module,
 } from "@nestjs/common";
 import {
@@ -13,12 +14,20 @@ import {
 import {
     UsersRepository,
 } from "./users.repository";
+import {
+    AuthModule, 
+} from "../auth/auth.module";
 
 @Module({
-    imports: [PrismaModule,],
+    imports: [PrismaModule,
+        forwardRef(() => AuthModule),
+    ],
     providers: [UsersService,
-        UsersRepository,],
+        UsersRepository,
+    ],
     controllers: [UsersController,],
+    exports: [UsersService,], 
+
 })
 export class UsersModule {
 }

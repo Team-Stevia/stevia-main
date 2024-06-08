@@ -4,6 +4,7 @@ import {
     Param,
     Patch,
     Post,
+    UseGuards,
 } from "@nestjs/common";
 import {
     UsersService,
@@ -11,6 +12,14 @@ import {
 import {
     UserSigninRequestDto,
 } from "./dtos/user.signin.request.dto";
+
+import {
+    GetUser,
+} from "../auth/get-user.decorator";
+
+import {
+    JwtAuthGuard,
+} from "../auth/jwt/jwt.guard";
 
 @Controller("api/users")
 export class UsersController {
@@ -25,8 +34,8 @@ export class UsersController {
 
     // 로그인
     @Post("/signin")
-    async signin(@Body() signinDto: UserSigninRequestDto): Promise<any> {
-        return await this.userService.signinUser(signinDto);
+    async signIn(@Body() signInDto: UserSigninRequestDto): Promise<any> {
+        return await this.userService.signInUser(signInDto);
     }
 
     // 비밀번호 수정
@@ -37,8 +46,14 @@ export class UsersController {
             currentPassword: string,
             newPassword: string
         }
-    ):Promise<string> {
+    ): Promise<string> {
         return await this.userService.changePassword(userId, password.currentPassword, password.newPassword);
 
+    }
+
+    @Post("/test")
+    @UseGuards(JwtAuthGuard)
+    async test(@GetUser() user: any) {
+        console.log("user", user);
     }
 }

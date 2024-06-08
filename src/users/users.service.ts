@@ -7,15 +7,23 @@ import {
 import {
     UsersRepository, 
 } from "./users.repository";
+import {
+    AuthService, 
+} from "../auth/auth.service";
 
 @Injectable()
 export class UsersService {
-    constructor(private readonly userRepository: UsersRepository) {
+    constructor(private readonly userRepository: UsersRepository,
+        private readonly authService: AuthService) {
     }
 
     // 로그인
-    async signinUser(signinDto: UserSigninRequestDto): Promise<string> {
-        return this.userRepository.signinUser(signinDto);
+    async signInUser(signInDto: UserSigninRequestDto): Promise<{ access_token: string }> {
+        // 기존 로그인 로직
+        // return this.userRepository.signInUser(signInDto);
+
+        // JWT 로그인 로직
+        return await this.authService.signIn(signInDto);
     }
 
     // 비밀번호 수정
