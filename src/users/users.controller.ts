@@ -1,6 +1,7 @@
 import {
     Body,
     Controller,
+    Get,
     Param,
     Patch,
     Post,
@@ -20,6 +21,9 @@ import {
 import {
     JwtAuthGuard,
 } from "../auth/jwt/jwt.guard";
+import {
+    UserChangePasswordRequestDto, 
+} from "./dtos/user.changePassword.request.dto";
 
 @Controller("api/users")
 export class UsersController {
@@ -42,18 +46,20 @@ export class UsersController {
     @Patch("/:userId")
     async resetPassword(
         @Param("userId") userId: number,
-        @Body() password: {
-            currentPassword: string,
-            newPassword: string
-        }
+        @Body() userChangePasswordRequestDto:UserChangePasswordRequestDto
+        // @Body() password: {
+        //     currentPassword: string,
+        //     newPassword: string
+        // }
     ): Promise<string> {
-        return await this.userService.changePassword(userId, password.currentPassword, password.newPassword);
+        return await this.userService.changePassword(userId,userChangePasswordRequestDto);
+    };
 
-    }
-
-    @Post("/test")
+    @Get("/test")
     @UseGuards(JwtAuthGuard)
-    async test(@GetUser() user: any) {
+    async test(@GetUser() user:any):Promise<string> {
         console.log("user", user);
+
+        return "인증성공";
     }
 }

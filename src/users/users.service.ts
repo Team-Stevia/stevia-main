@@ -5,11 +5,14 @@ import {
     UserSigninRequestDto,
 } from "./dtos/user.signin.request.dto";
 import {
-    UsersRepository, 
+    UsersRepository,
 } from "./users.repository";
 import {
-    AuthService, 
+    AuthService,
 } from "../auth/auth.service";
+import {
+    UserChangePasswordRequestDto,
+} from "./dtos/user.changePassword.request.dto";
 
 @Injectable()
 export class UsersService {
@@ -27,8 +30,8 @@ export class UsersService {
     }
 
     // 비밀번호 수정
-    async changePassword(userId: number, currentPassword: string, newPassword: string): Promise<string> {
-        return this.userRepository.changePassword(userId, currentPassword, newPassword);
+    async changePassword(userId: number, userChangePasswordRequestDto: UserChangePasswordRequestDto): Promise<string> {
+        return this.userRepository.changePassword(userId, userChangePasswordRequestDto);
     }
 
 }

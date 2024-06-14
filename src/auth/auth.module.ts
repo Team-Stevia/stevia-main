@@ -23,6 +23,7 @@ import {
 
 @Module({
     imports:[PrismaModule,
+        // 로그인할 때 사용하는 모듈
         JwtModule.register({
             global: true,
             secret: `${process.env.JWT_SECRET}`, // 여기에 비밀 키 추가

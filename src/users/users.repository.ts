@@ -1,12 +1,16 @@
 import {
-    Injectable, 
-} from "@nestjs/common";
+    Injectable,
+}                                       from "@nestjs/common";
 import {
-    PrismaService, 
-} from "../prisma/prisma.service";
+    PrismaService,
+}                                       from "../prisma/prisma.service";
 import {
-    UserSigninRequestDto, 
-} from "./dtos/user.signin.request.dto";
+    UserSigninRequestDto,
+}                                       from "./dtos/user.signin.request.dto";
+import * as bcrypt                      from "bcrypt";
+import {
+    UserChangePasswordRequestDto, 
+} from "./dtos/user.changePassword.request.dto";
 
 @Injectable()
 export class UsersRepository {
@@ -31,7 +35,7 @@ export class UsersRepository {
         }
     }
 
-    async changePassword(userId: number, currentPassword: string, newPassword: string): Promise<string> {
+    async changePassword(userId:number,userChangePasswordRequestDto: UserChangePasswordRequestDto): Promise<string> {
         try {
             // 사용자 조회
             const user = await this.prismaService.user.findUnique({
@@ -41,12 +45,12 @@ export class UsersRepository {
             });
 
             if (!user) {
-                throw new Error('사용자를 찾을 수 없습니다.');
+                throw new Error("사용자를 찾을 수 없습니다.");
             }
 
             // 현재 비밀번호 일치 여부 확인
-            if (user.password !== currentPassword) {
-                throw new Error('현재 비밀번호가 일치하지 않습니다.');
+            if (user.password !== userChangePasswordRequestDto.currentPassword) {
+                throw new Error("현재 비밀번호가 일치하지 않습니다.");
             }
 
             // 비밀번호 업데이트
@@ -55,11 +59,11 @@ export class UsersRepository {
                     student_id: userId,
                 },
                 data: {
-                    password: newPassword,
+                    password: userChangePasswordRequestDto.newPassword,
                 },
             });
 
-            return '비밀번호가 성공적으로 변경되었습니다.';
+            return "비밀번호가 성공적으로 변경되었습니다.";
         } catch (error) {
             throw error;
         }
