@@ -1,7 +1,6 @@
 import {
     Body,
     Controller,
-    Get,
     Param,
     Patch,
     Post,
@@ -13,17 +12,12 @@ import {
 import {
     UserSigninRequestDto,
 } from "./dtos/user.signin.request.dto";
-
-import {
-    GetUser,
-} from "../auth/get-user.decorator";
-
-import {
-    JwtAuthGuard,
-} from "../auth/jwt/jwt.guard";
 import {
     UserChangePasswordRequestDto, 
 } from "./dtos/user.changePassword.request.dto";
+import {
+    BasicTokenGuard, 
+} from "../auth/guard/basic-token.guard";
 
 @Controller("api/users")
 export class UsersController {
@@ -55,11 +49,11 @@ export class UsersController {
         return await this.userService.changePassword(userId,userChangePasswordRequestDto);
     };
 
-    @Get("/test")
-    @UseGuards(JwtAuthGuard)
-    async test(@GetUser() user:any):Promise<string> {
-        console.log("user", user);
-
-        return "인증성공";
-    }
+    // @Get("/test")
+    // @UseGuards(JwtAuthGuard)
+    // async test(@GetUser() user:any):Promise<string> {
+    //     console.log("user", user);
+    //
+    //     return "인증성공";
+    // }
 }

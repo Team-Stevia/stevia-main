@@ -68,4 +68,12 @@ export class UsersRepository {
             throw error;
         }
     }
+
+    // async getUserByStudentId(studentId: number):Promise<any> {
+    //     return this.prismaService.user.findFirst({
+    //         where: {
+    //             student_id: studentId,
+    //         },
+    //     });
+    // }
 }

@@ -3,66 +3,107 @@ import {
     UnauthorizedException,
 } from "@nestjs/common";
 import {
-    PrismaService,
-} from "../prisma/prisma.service";
-import {
     JwtService,
 } from "@nestjs/jwt";
 import {
     UserSigninRequestDto,
 } from "../users/dtos/user.signin.request.dto";
 import {
-    JwtPayload,
-} from "./jwt/jwt.payload";
+    UsersService,
+} from "../users/users.service";
+import {
+    PrismaService, 
+} from "../prisma/prisma.service";
 
 @Injectable()
 export class AuthService {
     constructor(
-        private readonly prismaService: PrismaService,
-        private jwtService: JwtService
+        private readonly prismaService:PrismaService,
+        private readonly jwtService: JwtService
     ) {
     }
 
-    async signIn(userDto: UserSigninRequestDto): Promise<{ access_token: string }> {
-        const user = await this.prismaService.user.findUnique({
-            where: {
-                student_id: userDto.studentId,
+    async signInWithEmail(user: UserSigninRequestDto):Promise<any> {
+        const existingUser = await this.authenticateWithStudentIdAndPassword(user);
+
+        return this.returnToken(existingUser);
+    }
+
+    async authenticateWithStudentIdAndPassword(user: UserSigninRequestDto):Promise<any> {
+        // const existingUser = await this.userService.getUserByStudentId(user.studentId);
+        const existingUser = await this.prismaService.user.findFirst({
+            where:{
+                student_id: user.studentId,
             },
         });
 
-        if (user?.password !== userDto.password) {
-            throw new UnauthorizedException();
+        if (!existingUser) {
+            throw new UnauthorizedException("존재하지 않은 사용자입니다.");
         }
 
-        const payload: JwtPayload = {
-            studentId: user.student_id,
-            name: user.name,
+        if (existingUser.password !== user.password) {
+            throw new UnauthorizedException("비밀번호가 틀렸습니다.");
+        }
+
+        return existingUser;
+    }
+
+    signToken(user: UserSigninRequestDto, isRefreshToken: boolean):string {
+        const payload = {
+            studentId: user.studentId,
+            type: isRefreshToken ? "refresh" : "access",
         };
 
-        // jwt에서 지원해주는 sign으로 토큰을 생성함
+        return this.jwtService.sign(payload, {
+            secret: process.env.JWT_SECRET,
+            expiresIn: isRefreshToken ? 3600 : 300,
+        });
+    }
+
+    returnToken(user: UserSigninRequestDto): { accessToken: string, refreshToken: string } {
         return {
-            access_token: this.jwtService.sign(payload),
+            accessToken: this.signToken(user, false),
+            refreshToken: this.signToken(user, true),
         };
     }
 
-    async refreshToken(token: string) {
+    extractTokenFromHeader(header: string, isBearer: boolean): string {
+        const splitToken = header.split(" ");
+
+        const prefix = isBearer ? "Bearer" : "Basic";
+
+        if (splitToken.length !== 2 || splitToken[0] !== prefix) {
+            throw new UnauthorizedException("잘못된 토큰입니다.");
+        }
+
+        const token = splitToken[1];
+
+        return token;
+    }
+
+    verifyToken(token: string): any {
         try {
-            const payload = this.jwtService.verify(token, {
+            return this.jwtService.verify(token, {
                 secret: process.env.JWT_SECRET,
             });
-            const user = await this.prismaService.user.findUnique({
-                where: {
-                    student_id: payload.studentId,
-                },
-            });
-
-            if (!user) {
-                throw new Error("Invalid token");
-            }
-
-            return "로그인을 다시 진행해 주세요.";
-        } catch (e) {
-            throw new Error("Invalid token");
+        } catch (err) {
+            throw new UnauthorizedException("토큰이 만료되었거나 잘못된 토큰입니다.");
         }
     }
+
+    rotateToken(token: string, isRefreshToken: boolean): string {
+        const decoded = this.jwtService.verify(token, {
+            secret: process.env.JWT_SECRET,
+        });
+
+        if (decoded.type !== "refresh") {
+            throw new UnauthorizedException("토큰 재발급은 Refresh 토큰으로만 가능합니다.");
+        }
+
+        return this.signToken(
+            {
+                ...decoded,
+            }, isRefreshToken);
+    }
+
 }

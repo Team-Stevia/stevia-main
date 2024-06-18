@@ -26,12 +26,16 @@ export class UsersService {
         // return this.userRepository.signInUser(signInDto);
 
         // JWT 로그인 로직
-        return await this.authService.signIn(signInDto);
+        return await this.authService.signInWithEmail(signInDto);
     }
 
     // 비밀번호 수정
     async changePassword(userId: number, userChangePasswordRequestDto: UserChangePasswordRequestDto): Promise<string> {
         return this.userRepository.changePassword(userId, userChangePasswordRequestDto);
     }
+
+    // async getUserByStudentId(studentId: number):Promise<any> {
+    //     return this.userRepository.getUserByStudentId(studentId);
+    // }
 
 }
