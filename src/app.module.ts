@@ -1,35 +1,48 @@
 import {
-    Module,
-}                      from "@nestjs/common";
+    Module, 
+} from '@nestjs/common';
 import {
-    AppController,
-}                      from "./app.controller";
+    AppController, 
+} from './app.controller';
 import {
-    AppService,
-}                      from "./app.service";
+    AppService, 
+} from './app.service';
 import {
-    ConfigModule,
-}                      from "@nestjs/config";
+    ConfigModule, 
+} from '@nestjs/config';
 import {
-    PrismaService,
-}                      from "./prisma/prisma.service";
+    PrismaService, 
+} from './prisma/prisma.service';
 import {
-    PrismaModule,
-}                      from "./prisma/prisma.module";
+    PrismaModule, 
+} from './prisma/prisma.module';
 import {
-    UsersModule, 
+    BoardsModule, 
+} from './boards/boards.module';
+import {
+    UsersModule,
 } from "./users/users.module";
 import {
-    AuthModule, 
+    AuthModule,
 }  from "./auth/auth.module";
+import {
+    ServeStaticModule,
+} from '@nestjs/serve-static';
+import {
+    join,
+} from 'path';
 
 @Module({
     imports: [ConfigModule.forRoot({
         isGlobal: true,
         cache: true,
-        envFilePath: ".env",
+        envFilePath: '.env',
+    }),
+    ServeStaticModule.forRoot({
+        rootPath: join(__dirname, '..'),
     }),
     PrismaModule,
+    BoardsModule,
     UsersModule,
     AuthModule,],
     controllers: [AppController,],
