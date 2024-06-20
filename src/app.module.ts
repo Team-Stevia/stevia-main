@@ -17,7 +17,7 @@ import {
     PrismaModule, 
 } from './prisma/prisma.module';
 import {
-    BoardsModule,
+    BoardsModule, 
 } from './boards/boards.module';
 import {
     UsersModule,
@@ -25,6 +25,12 @@ import {
 import {
     AuthModule,
 }  from "./auth/auth.module";
+import {
+    ServeStaticModule,
+} from '@nestjs/serve-static';
+import {
+    join,
+} from 'path';
 
 @Module({
     imports: [ConfigModule.forRoot({
@@ -32,9 +38,11 @@ import {
         cache: true,
         envFilePath: '.env',
     }),
+    ServeStaticModule.forRoot({
+        rootPath: join(__dirname, '..'),
+    }),
     PrismaModule,
     BoardsModule,
-    PrismaModule,
     UsersModule,
     AuthModule,],
     controllers: [AppController,],
