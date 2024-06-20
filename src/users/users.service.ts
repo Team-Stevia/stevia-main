@@ -26,7 +26,7 @@ export class UsersService {
         // return this.userRepository.signInUser(signInDto);
 
         // JWT 로그인 로직
-        return await this.authService.signInWithEmail(signInDto);
+        return await this.authService.signInWithStudentIdAndPassword(signInDto);
     }
 
     // 비밀번호 수정

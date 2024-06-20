@@ -20,7 +20,7 @@ export class AuthService {
     ) {
     }
 
-    async signInWithEmail(user: UserSigninRequestDto): Promise<any> {
+    async signInWithStudentIdAndPassword(user: UserSigninRequestDto): Promise<any> {
         const existingUser = await this.authenticateWithStudentIdAndPassword(user);
 
         return this.returnToken(existingUser);
