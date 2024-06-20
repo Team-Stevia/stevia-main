@@ -9,30 +9,27 @@ import {
     UserSigninRequestDto,
 } from "../users/dtos/user.signin.request.dto";
 import {
-    UsersService,
-} from "../users/users.service";
-import {
-    PrismaService, 
+    PrismaService,
 } from "../prisma/prisma.service";
 
 @Injectable()
 export class AuthService {
     constructor(
-        private readonly prismaService:PrismaService,
+        private readonly prismaService: PrismaService,
         private readonly jwtService: JwtService
     ) {
     }
 
-    async signInWithEmail(user: UserSigninRequestDto):Promise<any> {
+    async signInWithEmail(user: UserSigninRequestDto): Promise<any> {
         const existingUser = await this.authenticateWithStudentIdAndPassword(user);
 
         return this.returnToken(existingUser);
     }
 
-    async authenticateWithStudentIdAndPassword(user: UserSigninRequestDto):Promise<any> {
+    async authenticateWithStudentIdAndPassword(user: UserSigninRequestDto): Promise<any> {
         // const existingUser = await this.userService.getUserByStudentId(user.studentId);
         const existingUser = await this.prismaService.user.findFirst({
-            where:{
+            where: {
                 student_id: user.studentId,
             },
         });
@@ -48,7 +45,7 @@ export class AuthService {
         return existingUser;
     }
 
-    signToken(user: UserSigninRequestDto, isRefreshToken: boolean):string {
+    signToken(user: UserSigninRequestDto, isRefreshToken: boolean): string {
         const payload = {
             studentId: user.studentId,
             type: isRefreshToken ? "refresh" : "access",

@@ -16,8 +16,8 @@ import {
     UserChangePasswordRequestDto, 
 } from "./dtos/user.changePassword.request.dto";
 import {
-    BasicTokenGuard, 
-} from "../auth/guard/basic-token.guard";
+    AccessTokenGuard, 
+} from "../auth/guard/bear-token.guard";
 
 @Controller("api/users")
 export class UsersController {
@@ -38,22 +38,11 @@ export class UsersController {
 
     // 비밀번호 수정
     @Patch("/:userId")
+    @UseGuards(AccessTokenGuard)
     async resetPassword(
         @Param("userId") userId: number,
         @Body() userChangePasswordRequestDto:UserChangePasswordRequestDto
-        // @Body() password: {
-        //     currentPassword: string,
-        //     newPassword: string
-        // }
     ): Promise<string> {
         return await this.userService.changePassword(userId,userChangePasswordRequestDto);
     };
-
-    // @Get("/test")
-    // @UseGuards(JwtAuthGuard)
-    // async test(@GetUser() user:any):Promise<string> {
-    //     console.log("user", user);
-    //
-    //     return "인증성공";
-    // }
 }
