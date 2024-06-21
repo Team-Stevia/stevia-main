@@ -26,6 +26,25 @@ export class BoardsRepository {
             throw new BadRequestException("해당 강의실은 존재하지 않습니다.");
     }
 
+    // 학번을 이용해 user id 값 가져 오기
+
+    async getReserverIdByStudentId(studentId: number): Promise<string> {
+        const reserver = await this.prismaService.user.findUnique({
+            where: {
+                student_id: studentId,
+            },
+            select: {
+                id: true,
+            },
+        });
+
+        if (!reserver) {
+            throw new BadRequestException('해당 사용자는 없습니다.');
+        } else {
+            return reserver.id;
+        }
+    }
+
     // 예약 정보 저장
     async saveReservation(usageTime: string, roomId: string, reserverId: string): Promise<{ reserveId: string }> {
         const reservationInfo = await this.prismaService.reservation.create({

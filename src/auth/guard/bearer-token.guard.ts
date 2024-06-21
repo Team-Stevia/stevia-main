@@ -7,14 +7,10 @@ import {
 import {
     AuthService,
 } from "../auth.service";
-import {
-    UsersService,
-} from "../../users/users.service";
 
 @Injectable()
 export class BearerTokenGuard implements CanActivate {
-    constructor(protected readonly authService: AuthService,
-        private readonly usersService: UsersService) {
+    constructor(protected readonly authService: AuthService) {
     }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -32,7 +28,6 @@ export class BearerTokenGuard implements CanActivate {
 
         request.token = token;
         request.tokenType = tokenPayload.type;
-
         request.studentId = tokenPayload.studentId; // 사용자 아이디 저장
 
         return true;

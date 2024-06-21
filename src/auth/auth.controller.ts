@@ -9,7 +9,7 @@ import {
 } from "./auth.service";
 import {
     RefreshTokenGuard,
-} from "./guard/bear-token.guard";
+} from "./guard/bearer-token.guard";
 
 @Controller("api/auth")
 export class AuthController {

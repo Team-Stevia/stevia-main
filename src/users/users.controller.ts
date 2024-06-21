@@ -16,8 +16,8 @@ import {
     UserChangePasswordRequestDto,
 } from "./dtos/user.changePassword.request.dto";
 import {
-    AccessTokenGuard,
-} from "../auth/guard/bear-token.guard";
+    AccessTokenGuard, 
+} from "../auth/guard/bearer-token.guard";
 
 @Controller("api/users")
 export class UsersController {
@@ -41,8 +41,8 @@ export class UsersController {
     @UseGuards(AccessTokenGuard)
     async resetPassword(
         @Param("userId") userId: number,
-        @Body() userChangePasswordRequestDto: UserChangePasswordRequestDto
+        @Body() userChangePasswordRequestDto:UserChangePasswordRequestDto
     ): Promise<string> {
-        return await this.userService.changePassword(userId, userChangePasswordRequestDto);
+        return await this.userService.changePassword(userId,userChangePasswordRequestDto);
     };
 }
