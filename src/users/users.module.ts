@@ -15,7 +15,7 @@ import {
     UsersRepository,
 } from "./users.repository";
 import {
-    AuthModule, 
+    AuthModule,
 } from "../auth/auth.module";
 
 @Module({
@@ -26,7 +26,7 @@ import {
         UsersRepository,
     ],
     controllers: [UsersController,],
-    exports: [UsersService,], 
+    exports: [UsersService,],
 
 })
 export class UsersModule {

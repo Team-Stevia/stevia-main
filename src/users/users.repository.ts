@@ -1,14 +1,14 @@
 import {
     Injectable,
-}                                       from "@nestjs/common";
+} from "@nestjs/common";
 import {
     PrismaService,
-}                                       from "../prisma/prisma.service";
+} from "../prisma/prisma.service";
 import {
     UserSigninRequestDto,
-}                                       from "./dtos/user.signin.request.dto";
+} from "./dtos/user.signin.request.dto";
 import {
-    UserChangePasswordRequestDto, 
+    UserChangePasswordRequestDto,
 } from "./dtos/user.changePassword.request.dto";
 
 @Injectable()
@@ -34,7 +34,7 @@ export class UsersRepository {
         }
     }
 
-    async changePassword(userId:number,userChangePasswordRequestDto: UserChangePasswordRequestDto): Promise<string> {
+    async changePassword(userId: number, userChangePasswordRequestDto: UserChangePasswordRequestDto): Promise<string> {
         try {
             // 사용자 조회
             const user = await this.prismaService.user.findUnique({

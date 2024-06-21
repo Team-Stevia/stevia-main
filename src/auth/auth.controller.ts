@@ -28,9 +28,9 @@ export class AuthController {
         };
     }
 
-    @Post('token/refresh')
+    @Post("token/refresh")
     @UseGuards(RefreshTokenGuard)
-    async postRefreshToken(@Headers('authorization') rawToken: string):Promise<any> {
+    async postRefreshToken(@Headers("authorization") rawToken: string): Promise<any> {
         const token = this.authService.extractTokenFromHeader(rawToken, true);
 
         const newToken = this.authService.rotateToken(token, true);

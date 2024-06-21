@@ -1,18 +1,18 @@
 import {
-    Module, 
-} from '@nestjs/common';
+    Module,
+} from "@nestjs/common";
 import {
-    BoardsService, 
-} from './boards.service';
+    BoardsService,
+} from "./boards.service";
 import {
-    BoardsController, 
-} from './boards.controller';
+    BoardsController,
+} from "./boards.controller";
 import {
-    PrismaModule, 
-} from '../prisma/prisma.module';
+    PrismaModule,
+} from "../prisma/prisma.module";
 import {
-    BoardsRepository, 
-} from './boards.repository';
+    BoardsRepository,
+} from "./boards.repository";
 
 @Module({
     imports: [PrismaModule,],
@@ -20,4 +20,5 @@ import {
     providers: [BoardsService,
         BoardsRepository,],
 })
-export class BoardsModule {}
+export class BoardsModule {
+}
