@@ -28,10 +28,12 @@ export class BearerTokenGuard implements CanActivate {
 
         const token = this.authService.extractTokenFromHeader(rawToken, true);
 
-        const result =  await this.authService.verifyToken(token);
+        const tokenPayload =  await this.authService.verifyToken(token);
 
         request.token = token;
-        request.tokenType = result.type;
+        request.tokenType = tokenPayload.type;
+
+        request.studentId = tokenPayload.studentId; // 사용자 아이디 저장
 
         return true;
     }
