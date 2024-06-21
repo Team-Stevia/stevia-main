@@ -1,22 +1,22 @@
 import {
     forwardRef,
     Module,
-}                         from "@nestjs/common";
+} from "@nestjs/common";
 import {
     AuthService,
-}                         from "./auth.service";
+} from "./auth.service";
 import {
     PrismaModule,
-}                         from "../prisma/prisma.module";
+} from "../prisma/prisma.module";
 import {
     JwtModule,
-}                         from "@nestjs/jwt";
+} from "@nestjs/jwt";
 import {
     UsersModule,
-}                         from "../users/users.module";
+} from "../users/users.module";
 
 import {
-    AuthController, 
+    AuthController,
 } from "./auth.controller";
 
 @Module({

@@ -21,7 +21,7 @@ export class UsersService {
     }
 
     // 로그인
-    async signInUser(signInDto: UserSigninRequestDto):Promise<any> {
+    async signInUser(signInDto: UserSigninRequestDto): Promise<any> {
         // 기존 로그인 로직
         // return this.userRepository.signInUser(signInDto);
 

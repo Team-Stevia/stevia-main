@@ -11,6 +11,9 @@ import {
 import {
     PrismaService,
 } from "../prisma/prisma.service";
+import {
+    JwtPayload,
+} from "./jwt/jwt.payload";
 
 @Injectable()
 export class AuthService {
@@ -23,11 +26,12 @@ export class AuthService {
     async signInWithStudentIdAndPassword(user: UserSigninRequestDto): Promise<any> {
         const existingUser = await this.authenticateWithStudentIdAndPassword(user);
 
-        return this.returnToken(existingUser);
+        return this.returnToken({
+            studentId: existingUser.student_id,
+        });
     }
 
     async authenticateWithStudentIdAndPassword(user: UserSigninRequestDto): Promise<any> {
-        // const existingUser = await this.userService.getUserByStudentId(user.studentId);
         const existingUser = await this.prismaService.user.findFirst({
             where: {
                 student_id: user.studentId,
@@ -35,7 +39,7 @@ export class AuthService {
         });
 
         if (!existingUser) {
-            throw new UnauthorizedException("존재하지 않은 사용자입니다.");
+            throw new UnauthorizedException("존재하지 않는 사용자입니다.");
         }
 
         if (existingUser.password !== user.password) {
@@ -45,7 +49,7 @@ export class AuthService {
         return existingUser;
     }
 
-    signToken(user: UserSigninRequestDto, isRefreshToken: boolean): string {
+    signToken(user: JwtPayload, isRefreshToken: boolean): string {
         const payload = {
             studentId: user.studentId,
             type: isRefreshToken ? "refresh" : "access",
@@ -53,11 +57,11 @@ export class AuthService {
 
         return this.jwtService.sign(payload, {
             secret: process.env.JWT_SECRET,
-            expiresIn: isRefreshToken ? 3600 : 300,
+            expiresIn: isRefreshToken ? "1h" : "5m",  // string format for clarity
         });
     }
 
-    returnToken(user: UserSigninRequestDto): { accessToken: string, refreshToken: string } {
+    returnToken(user: JwtPayload): { accessToken: string, refreshToken: string } {
         return {
             accessToken: this.signToken(user, false),
             refreshToken: this.signToken(user, true),
@@ -66,7 +70,6 @@ export class AuthService {
 
     extractTokenFromHeader(header: string, isBearer: boolean): string {
         const splitToken = header.split(" ");
-
         const prefix = isBearer ? "Bearer" : "Basic";
 
         if (splitToken.length !== 2 || splitToken[0] !== prefix) {
@@ -99,8 +102,7 @@ export class AuthService {
 
         return this.signToken(
             {
-                ...decoded,
+                studentId: decoded.studentId,
             }, isRefreshToken);
     }
-
 }
