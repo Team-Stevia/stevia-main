@@ -28,7 +28,7 @@ export class BearerTokenGuard implements CanActivate {
 
         request.token = token;
         request.tokenType = tokenPayload.type;
-        request.studentId = tokenPayload.studentId; // 사용자 아이디 저장
+        request.studentNo = tokenPayload.studentId; // 사용자 아이디 저장
 
         return true;
     }

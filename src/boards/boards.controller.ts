@@ -17,20 +17,19 @@ export class BoardsController {
   // 강의실 예약
   @Post('/reservation/:roomId')
   @UseGuards(AccessTokenGuard)
-    async postReserveRoom(
-      @Request() request: any,
-      @Param('roomId', ParseUUIDPipe) roomId: string,
-                          @Body('usageTime') usageTime: string) {
+    async createRoomReservation(@Request() request: any,
+                                @Param('roomId', ParseUUIDPipe) roomId: string,
+                                @Body('usageTime') usageTime: string) {
 
-        // request 객체에서 studentId(학번) 가져오기(token payload의 sub 속성)
-        const studentId = request.studentId;
+        // request 객체에서 studentNo(학번) 가져오기(token payload의 sub 속성)
+        const studentNo = request.studentNo;
 
         const reserveRoomDto = {
             roomId,
             usageTime,
         };
 
-        return await this.boardsService.reserveRoom(reserveRoomDto, studentId);
+        return await this.boardsService.reserveRoom(reserveRoomDto, studentNo);
     }
 
   // 강의실 시간표 조회
@@ -43,11 +42,17 @@ export class BoardsController {
   // 현황판 조회
   @Get()
   @UseGuards(AccessTokenGuard)
-  getBoards() {}
+  getBoards(@Request() request: any) {
+      const studentNo = request.studentNo;
+
+      return this.boardsService.getBoards(studentNo);
+  }
 
   // 현황판 상세 조회
   @Get(':roomId')
   @UseGuards(AccessTokenGuard)
-  getBoardById(@Param('roomId') roomId: string) {}
+  getBoardById(@Param('roomId') roomId: string) {
+      return this.boardsService.getBoardById(roomId);
+  }
 
 }

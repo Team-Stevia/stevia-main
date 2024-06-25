@@ -57,7 +57,7 @@ export class AuthService {
 
         return this.jwtService.sign(payload, {
             secret: process.env.JWT_SECRET,
-            expiresIn: isRefreshToken ? "1h" : "5m",  // string format for clarity
+            expiresIn: isRefreshToken ? "1h" : "10m",  // string format for clarity
         });
     }
 
