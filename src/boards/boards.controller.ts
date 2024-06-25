@@ -1,40 +1,58 @@
 import {
     Body,
-    Controller,
-    Get,
-    Param,
-    ParseUUIDPipe,
-    Post,
-} from "@nestjs/common";
+    Controller, Get, Param, ParseUUIDPipe, Post, UseGuards, Request,
+} from '@nestjs/common';
 import {
-    BoardsService,
-} from "./boards.service";
+    BoardsService, 
+} from './boards.service';
+import {
+    AccessTokenGuard,
+} from '../auth/guard/bearer-token.guard';
 
-@Controller("api/boards")
+@Controller('api/boards')
 export class BoardsController {
-    constructor(private readonly boardsService: BoardsService) {
-    }
+    constructor(private readonly boardsService: BoardsService
+    ) {}
 
-    // 강의실 예약
-    @Post("/reservation/:roomId")
-    async postReserveRoom(@Param("roomId", ParseUUIDPipe) roomId: string,
-        @Body("usageTime") usageTime: string) {
+  // 강의실 예약
+  @Post('/reservation/:roomId')
+  @UseGuards(AccessTokenGuard)
+    async createRoomReservation(@Request() request: any,
+                                @Param('roomId', ParseUUIDPipe) roomId: string,
+                                @Body('usageTime') usageTime: string) {
 
-        // 현재 token이 구현되어 있지 않아 더미 데이터 삽입
-        const reserverId = "1be6154b-0ffb-4788-b84a-34343a149324";
+        // request 객체에서 studentNo(학번) 가져오기(token payload의 sub 속성)
+        const studentNo = request.studentNo;
 
         const reserveRoomDto = {
             roomId,
             usageTime,
-            reserverId,
         };
 
-        return await this.boardsService.reserveRoom(reserveRoomDto);
+        return await this.boardsService.reserveRoom(reserveRoomDto, studentNo);
     }
 
-    // 강의실 시간표 조회
-    @Get("/timetable/:roomId")
-    async getRoomTimetable(@Param("roomId") roomId: string) {
-        return await this.boardsService.getRoomTimetable(roomId);
-    }
+  // 강의실 시간표 조회
+  @Get('/timetable/:roomId')
+  @UseGuards(AccessTokenGuard)
+  async getRoomTimetable(@Param('roomId') roomId: string) {
+      return await this.boardsService.getRoomTimetable(roomId);
+  }
+
+  // 현황판 조회
+  @Get()
+  @UseGuards(AccessTokenGuard)
+  getBoards(@Request() request: any) {
+      const studentNo = request.studentNo;
+
+      return this.boardsService.getBoards(studentNo);
+  }
+
+  // 현황판 상세 조회
+  @Get(':roomId')
+  @UseGuards(AccessTokenGuard)
+  getBoardById(@Param('roomId') roomId: string) {
+      return this.boardsService.getBoardById(roomId);
+  }
+
 }

@@ -1,24 +1,31 @@
 import {
-    Module,
-} from "@nestjs/common";
+    Module, 
+} from '@nestjs/common';
 import {
-    BoardsService,
-} from "./boards.service";
+    BoardsService, 
+} from './boards.service';
 import {
-    BoardsController,
-} from "./boards.controller";
+    BoardsController, 
+} from './boards.controller';
 import {
-    PrismaModule,
-} from "../prisma/prisma.module";
+    PrismaModule, 
+} from '../prisma/prisma.module';
 import {
-    BoardsRepository,
-} from "./boards.repository";
+    BoardsRepository, 
+} from './boards.repository';
+import {
+    AuthModule,
+} from '../auth/auth.module';
+import {
+    UsersModule,
+} from '../users/users.module';
 
 @Module({
-    imports: [PrismaModule,],
+    imports: [PrismaModule,
+        AuthModule,
+        UsersModule,],
     controllers: [BoardsController,],
     providers: [BoardsService,
         BoardsRepository,],
 })
-export class BoardsModule {
-}
+export class BoardsModule {}

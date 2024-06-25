@@ -1,61 +1,147 @@
 import {
-    Injectable,
-} from "@nestjs/common";
+    Injectable, 
+} from '@nestjs/common';
 import {
-    BoardsRepository,
-} from "./boards.repository";
+    BoardsRepository, 
+} from './boards.repository';
 import {
-    ReserveRoomDto,
-} from "./dtos/boards.dto";
+    ReserveRoomDto, 
+} from './dtos/boards.dto';
 
 @Injectable()
 export class BoardsService {
     constructor(private readonly boardsRepository: BoardsRepository) {
     }
-
     /**
-     * 강의실 예약 시나리오
-     * 1. 강의실 예약 관련 DTO를 받는다.
-     *    DTO = usageTime
-     * 2. roomId가 유효한 지 검사한다.
-     * 3. token을 검증해 예약자가 누구인지 확인 후 reserver_id를 가져온다.
-     * 4. usageTime, reserveTime, reserver_id, room_id 데이터를 reservation 테이블에 삽입하여 예약 정보를 저장한다.
+     * reserveRoom(): 강의실 예약
+     *
+     * @param reserveRoomDto = usageTime(이용시간), roomId(강의실 아이디)
+     * @param studentNo = 학번
+     *
+     * 1. 예약할 강의실이 존재하는지 확인 -> checkRoomExits(roomId)
+     * 2. 예약하는 학생의 정보 갖고 오기 -> getStudentByStudentNo(studentNo)
+     * 3. 예약에 필요한 정보(usageTime, roomId, studentId)를 넘겨주어 예약 -> saveReservation(usageTime, roomId, student.id)
+     * 4. 예약한 id 반환
      */
-    // 강의실 예약 비즈니스 로직
-    async reserveRoom(reserveRoomDto: ReserveRoomDto): Promise<{ reserveId: string }> {
+    async reserveRoom(reserveRoomDto: ReserveRoomDto, studentNo: number): Promise<{reserveId: string}> {
         const {
-            usageTime,
-            roomId,
-            reserverId,
+            usageTime, roomId,
         } = reserveRoomDto;
 
         await this.boardsRepository.checkRoomExists(roomId);
 
-        return this.boardsRepository.saveReservation(usageTime, roomId, reserverId);
+        const student = await this.boardsRepository.getStudentByStudentNo(studentNo);
+
+        const reserve = await this.boardsRepository.saveReservation(usageTime, roomId, student.id);
+
+        return {
+            reserveId: reserve.id,
+        };
     }
 
     /**
-     * 강의실 시간표 조회 시나리오
-     * 1. 조회할 강의실의 id 값을 받는다.
-     * 2. id 정보를 통해 강의실 정보를 조회한다.
-     * 3. 2번을 통해 조회된 데이터 -> buildingLocation, buildingName, roomNo, roomImageUrl
-     * 4. 강의실 id는 reservation table이 외래키로 가지고 있다.
-     * 5. 해당 id와 일치하는 외래키 값을 가지는 예약 정보에 접근하여 usageTime을 가져온다.
+     * getRoomTimetable(): 강의실 시간표 조회
+     *
+     * @param roomId = 강의실 아이디
+     *
+     * 1. 조회할 강의실이 존재하는지 확인                 -> checkRoomExists(roomId)
+     * 2. 강의실 정보 조회                                -> getRoomInfo(roomId)
+     * 3. 해당 강의실에 대한 예약 정보(reservedTime) 조회 -> getRoomReservedTime(roomId)
+     * 4. 예약하는 오늘 날짜 객체 생성                    -> todayDate
      */
-    // 강의실 시간표 조회 비즈니스 로직
     async getRoomTimetable(roomId: string) {
+        await this.boardsRepository.checkRoomExists(roomId);
+
         const RoomInfo = await this.boardsRepository.getRoomInfo(roomId);
 
-        const reservedTime = await this.boardsRepository.getReservedTime(roomId);
+        const roomReservedTime = await this.boardsRepository.getRoomReservedTime(roomId);
 
         const todayDate = {
             today_date: new Date(),
         };
 
         return {
-            ...RoomInfo,
-            ...reservedTime,
-            ...todayDate,
+            ...RoomInfo,        // 강의실 정보
+            ...roomReservedTime,    // 해당 강의실 예약 정보
+            ...todayDate,       // 오늘 날짜
+        };
+    }
+
+    /**
+     * getBoards(): 현황판 조회
+     *
+     * @param studentNo = 학번
+     *
+     * 1. 현황판 조회 시, 기본적으로 나오는 건물의 강의실 정보 조회 -> getDefaultRoomList()
+     *    - 여기선 기본적으로 나오는 건물은 N3으로 지정
+     * 2. 다른 건물의 정보 조회                                     -> getOtherbuildingList()
+     * 3. 현재 서비스를 사용하는 학생의 예약 정보 조회              -> getStudentReservationInfo(studentNo)
+     */
+    async getBoards(studentNo: number) {
+        const defaultRoomList =  await this.boardsRepository.getDefaultRoomList();
+
+        const defaultRoomListInN3 = {
+            building_location: "N3",
+            roomList: defaultRoomList,
+        };
+
+        const otherBuildingList = await this.boardsRepository.getOtherbuildingList();
+
+        const reservationInfo = await this.getStudentReservationInfo(studentNo);
+
+        return {
+            BuildingAndRoomList: defaultRoomListInN3,
+            otherBuildingList: otherBuildingList,
+            reservationInfo: reservationInfo,
+        };
+    }
+
+    // 예약자, 예약 정보 가져오기
+    async getStudentReservationInfo(studentNo: number) {
+        // 학생 정보 가져오기
+        const student = await this.boardsRepository.getStudentByStudentNo(studentNo);
+
+        // 학생이 예약한 예약 정보 가져오기
+        const reservation = await this.boardsRepository.getReservationInfoByReserverId(student.id);
+
+        let reservationInfo;
+
+        if (!reservation) {
+            reservationInfo = {
+                reservationStatus: false,
+            };
+        } else {
+            const room = await this.boardsRepository.getRoomInfo(reservation.room_id);
+
+            reservationInfo = {
+                name: student.name,
+                buildingLocation: room.building_location,
+                roomNo: room.room_no,
+                usageTime: reservation.usage_time,
+                reserveTime: reservation.reserve_time,
+                reservationStatus: true,
+            };
+        }
+
+        return reservationInfo;
+    }
+
+    /**
+     * getBoardById(): 현황판 상세 조회
+     *
+     * @param roomId
+     *
+     * 1. roomId에 해당하는 buildingLocation 정보 조회          -> getBuildingLocation(roomId)
+     * 2. buildingLocation에 해당하는 강의실의 대한 리스트 조회 -> getRoomList(buildingLocation.building_location)
+     */
+    async getBoardById(roomId: string) {
+        const buildingRoom = await this.boardsRepository.getBuildingLocation(roomId);
+
+        const roomList = await this.boardsRepository.getRoomList(buildingRoom.building_location);
+
+        return {
+            buildingLocation: buildingRoom.building_location,
+            roomList: roomList,
         };
     }
 }
