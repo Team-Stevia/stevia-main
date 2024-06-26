@@ -1,29 +1,29 @@
 import {
     Module,
-}                    from "@nestjs/common";
+} from "@nestjs/common";
 import {
     ConfigModule,
-}                    from "@nestjs/config";
+} from "@nestjs/config";
 import {
     PrismaModule,
-}                    from "./prisma/prisma.module";
+} from "./prisma/prisma.module";
 import {
     BoardsModule,
-}                    from "./boards/boards.module";
+} from "./boards/boards.module";
 import {
     UsersModule,
-}                    from "./users/users.module";
+} from "./users/users.module";
 import {
     AuthModule,
-}                    from "./auth/auth.module";
+} from "./auth/auth.module";
 import {
     ServeStaticModule,
-}                    from "@nestjs/serve-static";
+} from "@nestjs/serve-static";
 import {
     join,
-}                    from "path";
+} from "path";
 import {
-    KeyModule, 
+    KeyModule,
 } from "./key/key.module";
 
 @Module({
