@@ -56,14 +56,9 @@ export class BoardsService {
 
         const roomReservedTime = await this.boardsRepository.getRoomReservedTime(roomId);
 
-        const todayDate = {
-            today_date: new Date(),
-        };
-
         return {
             ...RoomInfo,        // 강의실 정보
             ...roomReservedTime,    // 해당 강의실 예약 정보
-            ...todayDate,       // 오늘 날짜
         };
     }
 
@@ -81,7 +76,7 @@ export class BoardsService {
         const defaultRoomList =  await this.boardsRepository.getDefaultRoomList();
 
         const defaultRoomListInN3 = {
-            building_location: "N3",
+            buildingLocation: "N3",
             roomList: defaultRoomList,
         };
 
@@ -90,7 +85,7 @@ export class BoardsService {
         const reservationInfo = await this.getStudentReservationInfo(studentNo);
 
         return {
-            BuildingAndRoomList: defaultRoomListInN3,
+            buildingAndRoomList: defaultRoomListInN3,
             otherBuildingList: otherBuildingList,
             reservationInfo: reservationInfo,
         };
@@ -115,10 +110,9 @@ export class BoardsService {
 
             reservationInfo = {
                 name: student.name,
-                buildingLocation: room.building_location,
-                roomNo: room.room_no,
+                buildingLocation: room.buildingLocation,
+                roomNo: room.roomNo,
                 usageTime: reservation.usage_time,
-                reserveTime: reservation.reserve_time,
                 reservationStatus: true,
             };
         }
