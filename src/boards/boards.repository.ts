@@ -1,5 +1,9 @@
-import {BadRequestException, Injectable,} from '@nestjs/common';
-import {PrismaService,} from '../prisma/prisma.service';
+import {
+    BadRequestException, Injectable,
+} from '@nestjs/common';
+import {
+    PrismaService,
+} from '../prisma/prisma.service';
 
 @Injectable()
 export class BoardsRepository {
@@ -62,7 +66,7 @@ export class BoardsRepository {
                 buildingName: roomInfo.building_name,
                 roomNo: roomInfo.room_no,
                 roomImageUrl: roomInfo.room_image_url,
-            }
+            };
         }
     }
 
@@ -110,22 +114,23 @@ export class BoardsRepository {
         return defaultRoomList.map(room => ({
             roomId: room.id,
             roomNo: room.room_no,
-        }))
+        }));
     }
 
     async getOtherbuildingList() {
         const otherBuildingList = await this.prismaService.building_room.findMany({
+            where: {
+                building_location: {
+                    not: 'N3',
+                },
+            },
             select: {
-                id: true,
                 building_location: true,
             },
             distinct: ['building_location',],
         });
 
-        return otherBuildingList.map(building => ({
-            roomId: building.id,
-            buildingLocation: building.building_location,
-        }))
+        return otherBuildingList.map(obj => obj.building_location);
     }
 
     async getBuildingLocation(roomId: string): Promise<{building_location: string}> {

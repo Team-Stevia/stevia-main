@@ -52,10 +52,10 @@ export class BoardsController {
   }
 
   // 현황판 상세 조회
-  @Get(':roomId')
+  @Get(':buildingLocation')
   @UseGuards(AccessTokenGuard)
-  getBoardById(@Param('roomId', ParseUUIDPipe) roomId: string) {
-      return this.boardsService.getBoardById(roomId);
+  getBoardByBuildingLocation(@Param('buildingLocation') buildingLocation: string) {
+      return this.boardsService.getBoardByBuildingLocation(buildingLocation);
   }
 
 }
