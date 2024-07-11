@@ -56,9 +56,20 @@ export class BoardsService {
         // 기본 건물의 강의실 정보 가져오기
         const defaultRoomList =  await this.boardsRepository.getDefaultRoomList();
 
+        const ratesPromises = defaultRoomList.map(room => this.boardsRepository.getReservationRate(room.roomId));
+
+        const rates = await Promise.all(ratesPromises);
+
+        const combinedList = defaultRoomList.map((room, index) => {
+            return {
+                ...room,
+                reservationRate: rates[index],
+            };
+        });
+
         const defaultRoomListInN3 = {
             buildingLocation: "N3",
-            roomList: defaultRoomList,
+            roomList: combinedList,
         };
 
         // 다른 건물의 정보 가져오기

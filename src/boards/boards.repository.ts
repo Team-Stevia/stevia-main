@@ -71,7 +71,7 @@ export class BoardsRepository {
     }
 
     // 해당 강의실의 예약 시간 반환
-    async getRoomReservedTime(roomId: string): Promise<{ reservedTime: string }> {
+    async getRoomReservedTime(roomId: string) {
         // Example: [{usage_time: "9, 10, 11"}, {usage_time: "13, 14"}]
         const reservedTimeArray = await this.prismaService.reservation.findMany({
             where: {
@@ -165,5 +165,22 @@ export class BoardsRepository {
             roomId: room.id,
             roomNo: room.room_no,
         }));
+    }
+
+    // 강의실 예약 비율 구하기
+    async getReservationRate(roomId: string) {
+        const reservedTimes = await this.getRoomReservedTime(roomId);
+
+        if (reservedTimes.reservedTime === "") {
+            return 0;
+        }
+
+        const reservedTimesArray = reservedTimes.reservedTime.split(',');
+
+        const maxElements = 9;
+
+        const elementCount = reservedTimesArray.length;
+
+        return Math.floor((elementCount / maxElements) * 100);
     }
 }
