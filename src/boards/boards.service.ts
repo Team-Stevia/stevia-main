@@ -13,7 +13,7 @@ export class BoardsService {
     constructor(private readonly boardsRepository: BoardsRepository) {
     }
 
-    // 강의실 예약
+    // reserveRoom() 강의실 예약
     async reserveRoom(reserveRoomDto: ReserveRoomDto, studentNo: number): Promise<{reserveId: string}> {
         const {
             usageTime, roomId,
@@ -26,7 +26,7 @@ export class BoardsService {
         const student = await this.boardsRepository.getStudentByStudentNo(studentNo);
 
         // 예약
-        const reserve = await this.boardsRepository.saveReservation(usageTime, roomId, student.id);
+        const reserve = await this.boardsRepository.createRoomReservation(usageTime, roomId, student.id);
 
         // 예약 아이디 값 반환
         return {
@@ -40,46 +40,48 @@ export class BoardsService {
         await this.boardsRepository.checkRoomExists(roomId);
 
         // 강의실 정보 가져오기
-        const RoomInfo = await this.boardsRepository.getRoomInfo(roomId);
+        const room = await this.boardsRepository.getRoomByRoomId(roomId);
 
         // 해당 강의실의 예약 정보 가져오기
-        const roomReservedTime = await this.boardsRepository.getRoomReservedTime(roomId);
+        const reservedTimes = await this.boardsRepository.getRoomReservedTimes(roomId);
 
         return {
-            ...RoomInfo,            // 강의실 정보
-            ...roomReservedTime,    // 해당 강의실 예약 정보
+            ...room,             // 강의실 정보
+            ...reservedTimes,    // 해당 강의실 예약 정보
         };
     }
 
     // 현황판 조회
     async getBoards(studentNo: number) {
-        // 기본 건물의 강의실 정보 가져오기
+        // 기본 건물의 강의실 목록 가져오기
         const defaultRoomList =  await this.boardsRepository.getDefaultRoomList();
 
-        const ratesPromises = defaultRoomList.map(room => this.boardsRepository.getReservationRate(room.roomId));
+        // 기본 건물의 각 강의실 예약 비율 가져오기
+        const reservationRatePromises = defaultRoomList.map(room => this.boardsRepository.getReservationRate(room.roomId));
 
-        const rates = await Promise.all(ratesPromises);
+        const reservationRate = await Promise.all(reservationRatePromises);
 
+        // 강의실 정보와 예약 비율 조합
         const combinedList = defaultRoomList.map((room, index) => {
             return {
                 ...room,
-                reservationRate: rates[index],
+                reservationRate: reservationRate[index],
             };
         });
 
-        const defaultRoomListInN3 = {
+        const defaultBuildingAndRooms = {
             buildingLocation: "N3",
             roomList: combinedList,
         };
 
         // 다른 건물의 정보 가져오기
-        const otherBuildingList = await this.boardsRepository.getOtherbuildingList();
+        const otherBuildingList = await this.boardsRepository.getOtherBuildingList();
 
         // 학생의 예약 정보 가져오기
         const reservationInfo = await this.getStudentReservationInfo(studentNo);
 
         return {
-            buildingAndRoomList: defaultRoomListInN3,
+            buildingAndRoomList: defaultBuildingAndRooms,
             otherBuildingList: otherBuildingList,
             reservationInfo: reservationInfo,
         };
@@ -100,7 +102,7 @@ export class BoardsService {
                 reservationStatus: false,
             };
         } else {
-            const room = await this.boardsRepository.getRoomInfo(reservation.room_id);
+            const room = await this.boardsRepository.getRoomByRoomId(reservation.room_id);
 
             reservationInfo = {
                 name: student.name,
@@ -119,9 +121,20 @@ export class BoardsService {
         // 건물에 해당하는 강의실 목록 가져오기
         const roomList = await this.boardsRepository.getRoomList(buildingLocation);
 
+        const reservationRatePromises = roomList.map(room => this.boardsRepository.getReservationRate(room.roomId));
+
+        const reservationRate = await Promise.all(reservationRatePromises);
+
+        const combinedList = roomList.map((room, index) => {
+            return {
+                ...room,
+                reservationRate: reservationRate[index],
+            };
+        });
+
         return {
             buildingLocation,
-            roomList: roomList,
+            roomList: combinedList,
         };
     }
 }
