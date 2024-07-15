@@ -1,16 +1,25 @@
 import {
-    Module, 
-}        from "@nestjs/common";
+    Module,
+} from "@nestjs/common";
 import {
-    KeyService, 
-}    from "./key.service";
+    KeyService,
+} from "./key.service";
 import {
-    KeyController, 
+    KeyController,
 } from "./key.controller";
+import {
+    PrismaModule,
+} from "../prisma/prisma.module";
+import {
+    KeyRepository,
+} from "./key.repository";
 
 @Module({
-    providers: [KeyService,],
-    controllers: [KeyController,],
+    imports: [PrismaModule,],
+    providers: [KeyService,
+        KeyRepository,],
+    controllers: [KeyController,
+    ],
 })
 export class KeyModule {
 }
