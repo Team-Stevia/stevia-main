@@ -12,80 +12,76 @@ import {
 export class BoardsService {
     constructor(private readonly boardsRepository: BoardsRepository) {
     }
-    /**
-     * reserveRoom(): 강의실 예약
-     *
-     * @param reserveRoomDto = usageTime(이용시간), roomId(강의실 아이디)
-     * @param studentNo = 학번
-     *
-     * 1. 예약할 강의실이 존재하는지 확인 -> checkRoomExits(roomId)
-     * 2. 예약하는 학생의 정보 갖고 오기 -> getStudentByStudentNo(studentNo)
-     * 3. 예약에 필요한 정보(usageTime, roomId, studentId)를 넘겨주어 예약 -> saveReservation(usageTime, roomId, student.id)
-     * 4. 예약한 id 반환
-     */
+
+    // reserveRoom() 강의실 예약
     async reserveRoom(reserveRoomDto: ReserveRoomDto, studentNo: number): Promise<{reserveId: string}> {
         const {
             usageTime, roomId,
         } = reserveRoomDto;
 
+        // 강의실 존재 여부 확인
         await this.boardsRepository.checkRoomExists(roomId);
 
+        // 예약하는 학생의 정보 가져오기
         const student = await this.boardsRepository.getStudentByStudentNo(studentNo);
 
-        const reserve = await this.boardsRepository.saveReservation(usageTime, roomId, student.id);
+        // 예약
+        const reserve = await this.boardsRepository.createRoomReservation(usageTime, roomId, student.id);
 
+        // 예약 아이디 값 반환
         return {
             reserveId: reserve.id,
         };
     }
 
-    /**
-     * getRoomTimetable(): 강의실 시간표 조회
-     *
-     * @param roomId = 강의실 아이디
-     *
-     * 1. 조회할 강의실이 존재하는지 확인                 -> checkRoomExists(roomId)
-     * 2. 강의실 정보 조회                                -> getRoomInfo(roomId)
-     * 3. 해당 강의실에 대한 예약 정보(reservedTime) 조회 -> getRoomReservedTime(roomId)
-     * 4. 예약하는 오늘 날짜 객체 생성                    -> todayDate
-     */
+    // 강의실 시간표 조회
     async getRoomTimetable(roomId: string) {
+        // 강의실 존재 여부 확인
         await this.boardsRepository.checkRoomExists(roomId);
 
-        const RoomInfo = await this.boardsRepository.getRoomInfo(roomId);
+        // 강의실 정보 가져오기
+        const room = await this.boardsRepository.getRoomByRoomId(roomId);
 
-        const roomReservedTime = await this.boardsRepository.getRoomReservedTime(roomId);
+        // 해당 강의실의 예약 정보 가져오기
+        const reservedTimes = await this.boardsRepository.getRoomReservedTimes(roomId);
 
         return {
-            ...RoomInfo,        // 강의실 정보
-            ...roomReservedTime,    // 해당 강의실 예약 정보
+            ...room,             // 강의실 정보
+            ...reservedTimes,    // 해당 강의실 예약 정보
         };
     }
 
-    /**
-     * getBoards(): 현황판 조회
-     *
-     * @param studentNo = 학번
-     *
-     * 1. 현황판 조회 시, 기본적으로 나오는 건물의 강의실 정보 조회 -> getDefaultRoomList()
-     *    - 여기선 기본적으로 나오는 건물은 N3으로 지정
-     * 2. 다른 건물의 정보 조회                                     -> getOtherbuildingList()
-     * 3. 현재 서비스를 사용하는 학생의 예약 정보 조회              -> getStudentReservationInfo(studentNo)
-     */
+    // 현황판 조회
     async getBoards(studentNo: number) {
+        // 기본 건물의 강의실 목록 가져오기
         const defaultRoomList =  await this.boardsRepository.getDefaultRoomList();
 
-        const defaultRoomListInN3 = {
+        // 기본 건물의 각 강의실 예약 비율 가져오기
+        const reservationRatePromises = defaultRoomList.map(room => this.boardsRepository.getReservationRate(room.roomId));
+
+        const reservationRate = await Promise.all(reservationRatePromises);
+
+        // 강의실 정보와 예약 비율 조합
+        const combinedList = defaultRoomList.map((room, index) => {
+            return {
+                ...room,
+                reservationRate: reservationRate[index],
+            };
+        });
+
+        const defaultBuildingAndRooms = {
             buildingLocation: "N3",
-            roomList: defaultRoomList,
+            roomList: combinedList,
         };
 
-        const otherBuildingList = await this.boardsRepository.getOtherbuildingList();
+        // 다른 건물의 정보 가져오기
+        const otherBuildingList = await this.boardsRepository.getOtherBuildingList();
 
+        // 학생의 예약 정보 가져오기
         const reservationInfo = await this.getStudentReservationInfo(studentNo);
 
         return {
-            buildingAndRoomList: defaultRoomListInN3,
+            buildingAndRoomList: defaultBuildingAndRooms,
             otherBuildingList: otherBuildingList,
             reservationInfo: reservationInfo,
         };
@@ -106,7 +102,7 @@ export class BoardsService {
                 reservationStatus: false,
             };
         } else {
-            const room = await this.boardsRepository.getRoomInfo(reservation.room_id);
+            const room = await this.boardsRepository.getRoomByRoomId(reservation.room_id);
 
             reservationInfo = {
                 name: student.name,
@@ -120,22 +116,25 @@ export class BoardsService {
         return reservationInfo;
     }
 
-    /**
-     * getBoardById(): 현황판 상세 조회
-     *
-     * @param roomId
-     *
-     * 1. roomId에 해당하는 buildingLocation 정보 조회          -> getBuildingLocation(roomId)
-     * 2. buildingLocation에 해당하는 강의실의 대한 리스트 조회 -> getRoomList(buildingLocation.building_location)
-     */
-    async getBoardById(roomId: string) {
-        const buildingRoom = await this.boardsRepository.getBuildingLocation(roomId);
+    // 현황판 상세 조회
+    async getBoardByBuildingLocation(buildingLocation: string) {
+        // 건물에 해당하는 강의실 목록 가져오기
+        const roomList = await this.boardsRepository.getRoomList(buildingLocation);
 
-        const roomList = await this.boardsRepository.getRoomList(buildingRoom.building_location);
+        const reservationRatePromises = roomList.map(room => this.boardsRepository.getReservationRate(room.roomId));
+
+        const reservationRate = await Promise.all(reservationRatePromises);
+
+        const combinedList = roomList.map((room, index) => {
+            return {
+                ...room,
+                reservationRate: reservationRate[index],
+            };
+        });
 
         return {
-            buildingLocation: buildingRoom.building_location,
-            roomList: roomList,
+            buildingLocation,
+            roomList: combinedList,
         };
     }
 }

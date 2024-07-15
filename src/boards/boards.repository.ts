@@ -1,5 +1,9 @@
-import {BadRequestException, Injectable,} from '@nestjs/common';
-import {PrismaService,} from '../prisma/prisma.service';
+import {
+    BadRequestException, Injectable,
+} from '@nestjs/common';
+import {
+    PrismaService,
+} from '../prisma/prisma.service';
 
 @Injectable()
 export class BoardsRepository {
@@ -8,17 +12,17 @@ export class BoardsRepository {
 
     // 강의실 존재 여부 확인
     async checkRoomExists(roomId: string): Promise<void> {
-        const result = await this.prismaService.building_room.findUnique({
+        const room = await this.prismaService.building_room.findUnique({
             where: {
                 id: roomId,
             },
         });
 
-        if (!result)
+        if (!room)
             throw new BadRequestException("해당 강의실은 존재하지 않습니다.");
     }
 
-    // 학번을 통해 학생 정보 조회
+    // 학번을 통해 학생 정보 가져오기
     async getStudentByStudentNo(studentNo: number) {
         const student = await this.prismaService.user.findUnique({
             where: {
@@ -34,7 +38,7 @@ export class BoardsRepository {
     }
 
     // 강의실 예약
-    async saveReservation(usageTime: string, roomId: string, reserverId: string) {
+    async createRoomReservation(usageTime: string, roomId: string, reserverId: string) {
         return this.prismaService.reservation.create({
             data: {
                 usage_time: usageTime,
@@ -46,30 +50,30 @@ export class BoardsRepository {
     };
 
     // 강의실 정보 반환
-    async getRoomInfo(roomId: string) {
-        const roomInfo = await this.prismaService.building_room.findUnique({
+    async getRoomByRoomId(roomId: string) {
+        const room = await this.prismaService.building_room.findUnique({
             where: {
                 id: roomId,
             },
         });
 
-        if (!roomInfo) {
+        if (!room) {
             throw new BadRequestException("해당 강의실은 존재하지 않습니다.");
         } else {
             return {
-                roomId: roomInfo.id,
-                buildingLocation: roomInfo.building_location,
-                buildingName: roomInfo.building_name,
-                roomNo: roomInfo.room_no,
-                roomImageUrl: roomInfo.room_image_url,
-            }
+                roomId: room.id,
+                buildingLocation: room.building_location,
+                buildingName: room.building_name,
+                roomNo: room.room_no,
+                roomImageUrl: room.room_image_url,
+            };
         }
     }
 
     // 해당 강의실의 예약 시간 반환
-    async getRoomReservedTime(roomId: string): Promise<{ reservedTime: string }> {
-        // Example: [{usage_time: "9, 10, 11"}, {usage_time: "13, 14"}]
-        const reservedTimeArray = await this.prismaService.reservation.findMany({
+    async getRoomReservedTimes(roomId: string) {
+        // Example: [{usage_time: "9,10,11"}, {usage_time: "15,16"}]
+        const reservedTimes = await this.prismaService.reservation.findMany({
             where: {
                 room_id: roomId,
             },
@@ -78,11 +82,11 @@ export class BoardsRepository {
             },
         });
 
-        // "9, 10, 11, 13, 14"
-        const mergedReservedTime = reservedTimeArray.map(item => item.usage_time.replace(/\s+/g, '')).join(",");
+        // "9,10,11,15,16"
+        const mergedReservedTimes = reservedTimes.map(reservedTime => reservedTime.usage_time.replace(/\s+/g, '')).join(",");
 
         return {
-            reservedTime: mergedReservedTime,
+            reservedTime: mergedReservedTimes,
         };
     }
 
@@ -110,39 +114,23 @@ export class BoardsRepository {
         return defaultRoomList.map(room => ({
             roomId: room.id,
             roomNo: room.room_no,
-        }))
+        }));
     }
 
-    async getOtherbuildingList() {
+    async getOtherBuildingList(): Promise<string[]> {
         const otherBuildingList = await this.prismaService.building_room.findMany({
+            where: {
+                building_location: {
+                    not: 'N3',
+                },
+            },
             select: {
-                id: true,
                 building_location: true,
             },
             distinct: ['building_location',],
         });
 
-        return otherBuildingList.map(building => ({
-            roomId: building.id,
-            buildingLocation: building.building_location,
-        }))
-    }
-
-    async getBuildingLocation(roomId: string): Promise<{building_location: string}> {
-        const buildingLocation = await this.prismaService.building_room.findUnique({
-            where: {
-                id: roomId,
-            },
-            select: {
-                building_location: true,
-            },
-        });
-
-        if (!buildingLocation) {
-            throw new BadRequestException('해당 건물은 존재하지 않습니다.');
-        } else {
-            return buildingLocation;
-        }
+        return otherBuildingList.map(obj => obj.building_location);
     }
 
     async getRoomList(buildingLocation: string) {
@@ -160,5 +148,22 @@ export class BoardsRepository {
             roomId: room.id,
             roomNo: room.room_no,
         }));
+    }
+
+    // 강의실 예약 비율 구하기
+    async getReservationRate(roomId: string) {
+        const reservedTimes = await this.getRoomReservedTimes(roomId);
+
+        if (reservedTimes.reservedTime === "") {
+            return 0;
+        }
+
+        const reservedTimesArray = reservedTimes.reservedTime.split(',');
+
+        const sumTimes = 9;
+
+        const countedTimes = reservedTimesArray.length;
+
+        return Math.round((countedTimes / sumTimes) * 100);
     }
 }

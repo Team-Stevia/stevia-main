@@ -13,7 +13,7 @@ import {
 
 @Injectable()
 export class UsageTimePipe implements PipeTransform {
-    transform(value: any) {
+    transform(value: any): string {
         if (typeof value !== 'string') {
             throw new BadRequestException('Invalid data type');
         }

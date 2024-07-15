@@ -22,9 +22,8 @@ export class BoardsController {
   @UseGuards(AccessTokenGuard)
     async createRoomReservation(@Request() request: any,
                                 @Param('roomId', ParseUUIDPipe) roomId: string,
-                                @Body('usageTime', UsageTimePipe) usageTime: string) {
+                                @Body('usageTime', UsageTimePipe) usageTime: string): Promise<{reserveId: string}> {
 
-        // request 객체에서 studentNo(학번) 가져오기(token payload의 sub 속성)
         const studentNo = request.studentNo;
 
         const reserveRoomDto = {
@@ -52,10 +51,9 @@ export class BoardsController {
   }
 
   // 현황판 상세 조회
-  @Get(':roomId')
+  @Get(':buildingLocation')
   @UseGuards(AccessTokenGuard)
-  getBoardById(@Param('roomId', ParseUUIDPipe) roomId: string) {
-      return this.boardsService.getBoardById(roomId);
+  getBoardByBuildingLocation(@Param('buildingLocation') buildingLocation: string) {
+      return this.boardsService.getBoardByBuildingLocation(buildingLocation);
   }
-
 }
