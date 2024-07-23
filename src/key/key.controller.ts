@@ -29,6 +29,6 @@ export class KeyController {
     // 키 반납
     @Delete("/:reserveId")
     async keyReturn(@Param("reserveId") reserveId: string): Promise<void> {
-        return await this.keyService.rentalKey(reserveId);
+        return await this.keyService.dropKey(reserveId);
     }
 }

@@ -10,8 +10,13 @@ export class KeyService {
     constructor(private readonly keyRepository: KeyRepository) {
     }
 
-    // URL에서 reserveId 추출 함수
+    // 키 대여 함수
     async rentalKey(reserveId: string): Promise<any> {
         return await this.keyRepository.rentalKey(reserveId);
+    }
+
+    // 키 반납 함수
+    async dropKey(reserveId: string): Promise<any> {
+        return await this.keyRepository.dropKey(reserveId);
     }
 }

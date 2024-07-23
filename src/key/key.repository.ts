@@ -25,7 +25,26 @@ export class KeyRepository {
                 throw new Error("예약 정보를 줄 수 없습니다.");
             }
 
-            const response = await axios.post("http://localhost:13000/api/keys", reserveInfo);
+            const response = await axios.post("http://localhost:3000/api/take-key", reserveInfo);
+
+            return response.data;
+        } catch (error) {
+            // eslint-disable-next-line
+            console.error("Error in rentalKey:", error.message);
+            throw error;
+        }
+    }
+
+    // main 에서 comm 으로 delete 요청 보내기
+    async dropKey(reserveId: string): Promise<any> {
+        try {
+            const reserveInfo = await this.returnReserveInfo(reserveId);
+
+            if (!reserveInfo) {
+                throw new Error("예약 정보를 줄 수 없습니다.");
+            }
+
+            const response = await axios.delete("http://localhost:3000/api/drop-key", reserveInfo);
 
             return response.data;
         } catch (error) {
