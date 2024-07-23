@@ -16,6 +16,34 @@ export class KeyRepository {
     constructor(private readonly prismaService: PrismaService) {
     }
 
+    // main 에서 comm 으로 get 요청 보내기
+    async currentKey(reserveId: string): Promise<any> {
+        try {
+            const reserveInfo = await this.returnReserveInfo(reserveId);
+
+            if (!reserveInfo) {
+                throw new Error("예약 정보를 줄 수 없습니다.");
+            }
+            const {
+                roomNo,
+                buildingLocation,
+            } = reserveInfo;
+
+            const response = await axios.get("http://localhost:3000/api/keys", {
+                params: {
+                    roomNo: roomNo,
+                    buildingLocation: buildingLocation,
+                },
+            });
+
+            return response.data;
+        } catch (error) {
+            // eslint-disable-next-line
+            console.error("현재 키 error:", error.message);
+            throw error;
+        }
+    }
+
     // main 에서 comm 으로 post 요청 보내기
     async rentalKey(reserveId: string): Promise<any> {
         try {
@@ -30,7 +58,7 @@ export class KeyRepository {
             return response.data;
         } catch (error) {
             // eslint-disable-next-line
-            console.error("Error in rentalKey:", error.message);
+            console.error("키 대여 error:", error.message);
             throw error;
         }
     }
@@ -49,7 +77,7 @@ export class KeyRepository {
             return response.data;
         } catch (error) {
             // eslint-disable-next-line
-            console.error("Error in rentalKey:", error.message);
+            console.error("키 반납 error:", error.message);
             throw error;
         }
     }

@@ -15,9 +15,9 @@ export class KeyController {
     }
 
     // 키 상태
-    @Get()
-    async currentKey(): Promise<any> {
-        return "성공";
+    @Get("/:reserveId")
+    async currentKey(@Param("reserveId") reserveId: string): Promise<any> {
+        return await this.keyService.currentKey(reserveId);
     }
 
     // 키 대여

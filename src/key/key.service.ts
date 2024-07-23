@@ -10,6 +10,12 @@ export class KeyService {
     constructor(private readonly keyRepository: KeyRepository) {
     }
 
+    // 키 상태 함수
+    async currentKey(reserveId: string): Promise<any> {
+        return await this.keyRepository.currentKey(reserveId);
+
+    }
+
     // 키 대여 함수
     async rentalKey(reserveId: string): Promise<any> {
         return await this.keyRepository.rentalKey(reserveId);
