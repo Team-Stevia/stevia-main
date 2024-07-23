@@ -10,6 +10,9 @@ import {
     isUUID,
 }            from "class-validator";
 import axios from "axios";
+import {
+    ReserveInfoDto,
+}            from "./dto/reserveInfo.dto";
 
 @Injectable()
 export class KeyRepository {
@@ -19,20 +22,16 @@ export class KeyRepository {
     // main 에서 comm 으로 get 요청 보내기
     async currentKey(reserveId: string): Promise<any> {
         try {
-            const reserveInfo = await this.returnReserveInfo(reserveId);
+            const reserveInfo: ReserveInfoDto = await this.returnReserveInfo(reserveId);
 
             if (!reserveInfo) {
-                throw new Error("예약 정보를 줄 수 없습니다.");
+                return new Error("예약 정보를 줄 수 없습니다.");
             }
-            const {
-                roomNo,
-                buildingLocation,
-            } = reserveInfo;
 
             const response = await axios.get("http://localhost:3000/api/keys", {
                 params: {
-                    roomNo: roomNo,
-                    buildingLocation: buildingLocation,
+                    roomNo: reserveInfo.room_no,
+                    buildingLocation: reserveInfo.building_location,
                 },
             });
 
@@ -47,10 +46,10 @@ export class KeyRepository {
     // main 에서 comm 으로 post 요청 보내기
     async rentalKey(reserveId: string): Promise<any> {
         try {
-            const reserveInfo = await this.returnReserveInfo(reserveId);
+            const reserveInfo: ReserveInfoDto = await this.returnReserveInfo(reserveId);
 
             if (!reserveInfo) {
-                throw new Error("예약 정보를 줄 수 없습니다.");
+                return new Error("예약 정보를 줄 수 없습니다.");
             }
 
             const response = await axios.post("http://localhost:3000/api/take-key", reserveInfo);
@@ -66,13 +65,15 @@ export class KeyRepository {
     // main 에서 comm 으로 delete 요청 보내기
     async dropKey(reserveId: string): Promise<any> {
         try {
-            const reserveInfo = await this.returnReserveInfo(reserveId);
+            const reserveInfo: ReserveInfoDto = await this.returnReserveInfo(reserveId);
 
             if (!reserveInfo) {
                 throw new Error("예약 정보를 줄 수 없습니다.");
             }
 
-            const response = await axios.delete("http://localhost:3000/api/drop-key", reserveInfo);
+            const response = await axios.delete("http://localhost:3000/api/drop-key", {
+                data: reserveInfo, 
+            });
 
             return response.data;
         } catch (error) {
@@ -83,7 +84,7 @@ export class KeyRepository {
     }
 
     // 예약된 건물과 방 번호 정보
-    async returnReserveInfo(reserveId: string): Promise<any> {
+    async returnReserveInfo(reserveId: string): Promise<ReserveInfoDto> {
         try {
             const isValid = await this.checkReserveId(reserveId);
 
