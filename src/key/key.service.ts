@@ -11,7 +11,7 @@ export class KeyService {
     }
 
     // URL에서 reserveId 추출 함수
-    async getReserveId(reserveId: string): Promise<void> {
-        return await this.keyRepository.sendReservationDetails(reserveId);
+    async rentalKey(reserveId: string): Promise<any> {
+        return await this.keyRepository.rentalKey(reserveId);
     }
 }

@@ -2,27 +2,48 @@ import {
     HttpException,
     HttpStatus,
     Injectable,
-} from "@nestjs/common";
+}            from "@nestjs/common";
 import {
     PrismaService,
-} from "../prisma/prisma.service";
+}            from "../prisma/prisma.service";
 import {
     isUUID,
-} from "class-validator";
-import axios, {
-    AxiosResponse,
-} from "axios";
+}            from "class-validator";
+import axios from "axios";
 
 @Injectable()
 export class KeyRepository {
     constructor(private readonly prismaService: PrismaService) {
     }
 
-    // Comm 요청 보내기
-    async sendReservationDetails(reserveId: string): Promise<void> {
-        const isValid = await this.checkReserveId(reserveId);
+    // main 에서 comm 으로 post 요청 보내기
+    async rentalKey(reserveId: string): Promise<any> {
+        try {
+            const reserveInfo = await this.returnReserveInfo(reserveId);
 
-        if (isValid) {
+            if (!reserveInfo) {
+                throw new Error("예약 정보를 줄 수 없습니다.");
+            }
+
+            const response = await axios.post("http://localhost:13000/api/keys", reserveInfo);
+
+            return response.data;
+        } catch (error) {
+            // eslint-disable-next-line
+            console.error("Error in rentalKey:", error.message);
+            throw error;
+        }
+    }
+
+    // 예약된 건물과 방 번호 정보
+    async returnReserveInfo(reserveId: string): Promise<any> {
+        try {
+            const isValid = await this.checkReserveId(reserveId);
+
+            if (!isValid) {
+                throw new Error("해당 예약 ID는 잘못된 ID 입니다.");
+            }
+
             const reservation = await this.prismaService.reservation.findUnique({
                 where: {
                     id: reserveId,
@@ -32,70 +53,30 @@ export class KeyRepository {
                 },
             });
 
-            if (reservation) {
-                const buildingRoom = await this.prismaService.building_room.findUnique({
-                    where: {
-                        id: reservation.room_id,
-                    },
-                    select: {
-                        room_no: true,
-                        building_location: true,
-                    },
-                });
-
-                if (buildingRoom) {
-                    try {
-                        const commResponse = await this.sendCommRequest(buildingRoom);
-
-                        // 응답의 door_status가 OPEN이면 프론트엔드에 응답을 보냅니다.
-                        if (commResponse.door_status === "OPEN") {
-                            await this.notifyFrontend({
-                                "키대여응답": true,
-                            });
-                            // eslint-disable-next-line
-                            console.log("Reservation details sent and frontend notified successfully");
-                        }
-                    } catch (error) {
-                        if (axios.isAxiosError(error)) {
-                            // eslint-disable-next-line
-                            console.error("Axios error:", {
-                                message: error.message,
-                                code: error.code,
-                                config: error.config,
-                                response: error.response?.data,
-                            });
-                        } else {
-                            // eslint-disable-next-line
-                            console.error("Unexpected error:", error);
-                        }
-                    }
-                }
+            if (!reservation) {
+                throw new Error("예약을 찾을 수 없습니다.");
             }
-        }
-    }
 
-    // Comm 요청 보내기
-    private async sendCommRequest(buildingRoom: { room_no: number, building_location: string }): Promise<{
-        door_status: string
-    }> {
-        try {
-            const response: AxiosResponse<{
-                door_status: string
-            }> = await axios.post("http://localhost:3000/api/key/take-key", buildingRoom);
+            const buildingRoom = await this.prismaService.building_room.findUnique({
+                where: {
+                    id: reservation.room_id,
+                },
+                select: {
+                    room_no: true,
+                    building_location: true,
+                },
+            });
 
-            return response.data;
+            if (!buildingRoom) {
+                throw new Error("예약된 건물과 방을 찾지 못했습니다.");
+            }
+
+            return {
+                room_no: buildingRoom.room_no,
+                building_location: buildingRoom.building_location,
+            };
         } catch (error) {
-            throw new HttpException("Comm 요청에 실패했습니다.", HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    // 프론트엔드로 응답을 보냅니다.
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    private async notifyFrontend(data: { "키대여응답": boolean }) {
-        try {
-            await axios.post("http://localhost:3001/api/notify", data);
-        } catch (error) {
-            throw new HttpException("프론트엔드로 응답 전송에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw error;
         }
     }
 
