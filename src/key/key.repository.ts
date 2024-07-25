@@ -28,7 +28,7 @@ export class KeyRepository {
                 return new Error("예약 정보를 줄 수 없습니다.");
             }
 
-            const response = await axios.get("http://localhost:3000/api/keys", {
+            const response = await axios.get("http://192.168.10.107:3000/api/keys", {
                 params: {
                     roomNo: reserveInfo.room_no,
                     buildingLocation: reserveInfo.building_location,
