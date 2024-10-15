@@ -28,7 +28,7 @@ export class KeyRepository {
                 return new Error("예약 정보를 줄 수 없습니다.");
             }
 
-            const response = await axios.get("http://192.168.10.107:3000/api/keys", {
+            const response = await axios.get("http://127.0.0.1:3002/api/keys", {
                 params: {
                     roomNo: reserveInfo.room_no,
                     buildingLocation: reserveInfo.building_location,
@@ -52,7 +52,7 @@ export class KeyRepository {
                 return new Error("예약 정보를 줄 수 없습니다.");
             }
 
-            const response = await axios.post("http://localhost:3000/api/take-key", reserveInfo);
+            const response = await axios.post("http://127.0.0.1:3002/api/take-key", reserveInfo);
 
             return response.data;
         } catch (error) {
@@ -71,7 +71,7 @@ export class KeyRepository {
                 throw new Error("예약 정보를 줄 수 없습니다.");
             }
 
-            const response = await axios.delete("http://localhost:3000/api/drop-key", {
+            const response = await axios.delete("http://127.0.0.1:3002/api/drop-key", {
                 data: reserveInfo, 
             });
 
