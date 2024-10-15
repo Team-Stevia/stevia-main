@@ -61,7 +61,6 @@ export class BoardsRepository {
             throw new BadRequestException("해당 강의실은 존재하지 않습니다.");
         } else {
             return {
-                roomId: room.id,
                 buildingLocation: room.building_location,
                 buildingName: room.building_name,
                 roomNo: room.room_no,
