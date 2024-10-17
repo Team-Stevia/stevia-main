@@ -85,7 +85,7 @@ export class BoardsRepository {
         const mergedReservedTimes = reservedTimes.map(reservedTime => reservedTime.usage_time.replace(/\s+/g, '')).join(",");
 
         return {
-            reservedTime: mergedReservedTimes,
+            reservedTimes: mergedReservedTimes,
         };
     }
 
@@ -118,15 +118,13 @@ export class BoardsRepository {
 
     async getOtherBuildingList(): Promise<string[]> {
         const otherBuildingList = await this.prismaService.building_room.findMany({
-            where: {
-                building_location: {
-                    not: 'N3',
-                },
-            },
             select: {
                 building_location: true,
             },
             distinct: ['building_location',],
+            orderBy: {
+                building_location: 'asc',
+            },
         });
 
         return otherBuildingList.map(obj => obj.building_location);
@@ -153,11 +151,11 @@ export class BoardsRepository {
     async getReservationRate(roomId: string) {
         const reservedTimes = await this.getRoomReservedTimes(roomId);
 
-        if (reservedTimes.reservedTime === "") {
+        if (reservedTimes.reservedTimes === "") {
             return 0;
         }
 
-        const reservedTimesArray = reservedTimes.reservedTime.split(',');
+        const reservedTimesArray = reservedTimes.reservedTimes.split(',');
 
         const sumTimes = 9;
 
