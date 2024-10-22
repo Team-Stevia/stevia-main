@@ -18,7 +18,7 @@ import {
     UsageTimePipe,
 } from "./pipes/usage-time.pipe";
 
-@Controller("api/boards")
+@Controller("stevia/api/boards")
 export class BoardsController {
     constructor(private readonly boardsService: BoardsService
     ) {
@@ -45,23 +45,23 @@ export class BoardsController {
   // 강의실 시간표 조회
   @Get('/timetable/:roomId')
   @UseGuards(AccessTokenGuard)
-  async getRoomTimetable(@Param('roomId', ParseUUIDPipe) roomId: string) {
-      return await this.boardsService.getRoomTimetable(roomId);
-  }
+    async getRoomTimetable(@Param('roomId', ParseUUIDPipe) roomId: string) {
+        return await this.boardsService.getRoomTimetable(roomId);
+    }
 
     // 현황판 조회
     @Get()
     @UseGuards(AccessTokenGuard)
-    getBoards(@Request() request: any) {
-        const studentNo = request.studentNo;
+  getBoards(@Request() request: any) {
+      const studentNo = request.studentNo;
 
-        return this.boardsService.getBoards(studentNo);
-    }
+      return this.boardsService.getBoards(studentNo);
+  }
 
   // 현황판 상세 조회
   @Get(':buildingLocation')
   @UseGuards(AccessTokenGuard)
-  getBoardByBuildingLocation(@Param('buildingLocation') buildingLocation: string) {
-      return this.boardsService.getBoardByBuildingLocation(buildingLocation);
-  }
+    getBoardByBuildingLocation(@Param('buildingLocation') buildingLocation: string) {
+        return this.boardsService.getBoardByBuildingLocation(buildingLocation);
+    }
 }

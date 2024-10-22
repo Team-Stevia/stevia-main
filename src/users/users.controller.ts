@@ -19,7 +19,7 @@ import {
     AccessTokenGuard, 
 } from "../auth/guard/bearer-token.guard";
 
-@Controller("api/users")
+@Controller("stevia/api/users")
 export class UsersController {
     constructor(private readonly userService: UsersService) {
     }

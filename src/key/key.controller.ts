@@ -9,7 +9,7 @@ import {
     KeyService,
 } from "./key.service";
 
-@Controller("/api/keys")
+@Controller("stevia/api/keys")
 export class KeyController {
     constructor(private readonly keyService: KeyService) {
     }
