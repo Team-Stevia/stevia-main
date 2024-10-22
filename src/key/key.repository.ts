@@ -2,17 +2,17 @@ import {
     HttpException,
     HttpStatus,
     Injectable,
-}            from "@nestjs/common";
+} from "@nestjs/common";
 import {
     PrismaService,
-}            from "../prisma/prisma.service";
+} from "../prisma/prisma.service";
 import {
     isUUID,
-}            from "class-validator";
+} from "class-validator";
 import axios from "axios";
 import {
     ReserveInfoDto,
-}            from "./dto/reserveInfo.dto";
+} from "./dto/reserveInfo.dto";
 
 @Injectable()
 export class KeyRepository {
@@ -28,12 +28,14 @@ export class KeyRepository {
                 return new Error("예약 정보를 줄 수 없습니다.");
             }
 
-            const response = await axios.get("http://127.0.0.1:3002/api/keys", {
+            const response = await axios.get("http://localhost:3002/api/keys", {
                 params: {
                     roomNo: reserveInfo.room_no,
                     buildingLocation: reserveInfo.building_location,
                 },
             });
+
+            console.log(response.data);
 
             return response.data;
         } catch (error) {
@@ -51,8 +53,7 @@ export class KeyRepository {
             if (!reserveInfo) {
                 return new Error("예약 정보를 줄 수 없습니다.");
             }
-
-            const response = await axios.post("http://127.0.0.1:3002/api/take-key", reserveInfo);
+            const response = await axios.post("http://localhost:3002/api/take-key", reserveInfo);
 
             return response.data;
         } catch (error) {
@@ -71,8 +72,14 @@ export class KeyRepository {
                 throw new Error("예약 정보를 줄 수 없습니다.");
             }
 
-            const response = await axios.delete("http://127.0.0.1:3002/api/drop-key", {
-                data: reserveInfo, 
+            const response = await axios.post(
+                "http://localhost:3002/api/drop-key", reserveInfo
+            );
+
+            await this.prismaService.reservation.delete({
+                where: {
+                    id: reserveId,
+                },
             });
 
             return response.data;
