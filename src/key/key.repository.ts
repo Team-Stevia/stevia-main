@@ -28,6 +28,8 @@ export class KeyRepository {
                 return new Error("예약 정보를 줄 수 없습니다.");
             }
 
+	    console.log("hi");
+
             const response = await axios.get("http://192.168.30.63:3002/api/keys", {
                 params: {
                     roomNo: reserveInfo.room_no,
