@@ -28,7 +28,7 @@ export class KeyRepository {
                 return new Error("예약 정보를 줄 수 없습니다.");
             }
 
-            const response = await axios.get("http://localhost:3002/api/keys", {
+            const response = await axios.get("http://192.168.30.63:3002/api/keys", {
                 params: {
                     roomNo: reserveInfo.room_no,
                     buildingLocation: reserveInfo.building_location,
@@ -53,7 +53,7 @@ export class KeyRepository {
             if (!reserveInfo) {
                 return new Error("예약 정보를 줄 수 없습니다.");
             }
-            const response = await axios.post("http://localhost:3002/api/take-key", reserveInfo);
+            const response = await axios.post("http://192.168.30.63:3002/api/take-key", reserveInfo);
 
             return response.data;
         } catch (error) {
@@ -73,7 +73,7 @@ export class KeyRepository {
             }
 
             const response = await axios.post(
-                "http://localhost:3002/api/drop-key", reserveInfo
+                "http://192.168.30.63:3002/api/drop-key", reserveInfo
             );
 
             await this.prismaService.reservation.delete({
